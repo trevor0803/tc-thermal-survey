@@ -27,9 +27,9 @@ Same as the Insulflo survey: (1) service needed, (2) property type,
 
 ## Setup
 
-1. **Meta Pixel** — replace the placeholder `000000000000000` in
-   `public/index.html` with the real Pixel ID before running ads. The `Lead`
-   event fires on successful submit; it's guarded so nothing breaks until then.
+1. **Meta Pixel** — wired with Pixel ID `1332082535728580`. Fires `PageView`
+   on load and `Lead` on successful submit (`autoConfig` is off so survey
+   button clicks don't send spurious events).
 2. **CRM webhook** — set `GHL_WEBHOOK_URL` in Vercel (`vercel env add
    GHL_WEBHOOK_URL`). Until set, `/api/lead` logs the lead and returns success.
 

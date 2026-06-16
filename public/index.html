@@ -11,10 +11,9 @@
   <!-- ============================================================= -->
   <!-- META (FACEBOOK) PIXEL                                          -->
   <!-- Fires PageView on load; the survey fires fbq('track','Lead')   -->
-  <!-- on submit (guarded by a typeof fbq check).                     -->
-  <!-- ▶ REPLACE the placeholder ID 000000000000000 with the real     -->
-  <!--   Meta Pixel ID before running ads. Until then it is a no-op    -->
-  <!--   target — the Lead event is still guarded so nothing breaks.   -->
+  <!-- on submit (guarded by a typeof fbq check). autoConfig is set    -->
+  <!-- false so each survey-answer button click does NOT send a        -->
+  <!-- spurious SubscribedButtonClick — only PageView + Lead are sent. -->
   <!-- ============================================================= -->
   <script>
   !function(f,b,e,v,n,t,s)
@@ -25,12 +24,12 @@
   t.src=v;s=b.getElementsByTagName(e)[0];
   s.parentNode.insertBefore(t,s)}(window, document,'script',
   'https://connect.facebook.net/en_US/fbevents.js');
-  fbq('set', 'autoConfig', false, '000000000000000');
-  fbq('init', '000000000000000');
+  fbq('set', 'autoConfig', false, '1332082535728580');
+  fbq('init', '1332082535728580');
   fbq('track', 'PageView');
   </script>
   <noscript><img height="1" width="1" style="display:none"
-  src="https://www.facebook.com/tr?id=000000000000000&ev=PageView&noscript=1" /></noscript>
+  src="https://www.facebook.com/tr?id=1332082535728580&ev=PageView&noscript=1" /></noscript>
   <!-- End Meta Pixel Code -->
 
   <style>
