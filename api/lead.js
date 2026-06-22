@@ -16,6 +16,30 @@
 // wired up) — see the fallback below.
 // =============================================================================
 
+import crypto from "node:crypto";
+
+// Signed pass-cookie for the /thank-you guard (verified in middleware.js).
+// Minted only after a successful submission; short TTL so it can't be reused.
+const LEAD_COOKIE = "tcts_lead";
+const COOKIE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function setLeadCookie(res) {
+  const secret = process.env.LEAD_COOKIE_SECRET;
+  if (!secret) {
+    // Without a secret we can't sign; the /thank-you guard fails open, so the
+    // page still works — but log loudly so the misconfig is visible.
+    console.error("[TCTS /api/lead] LEAD_COOKIE_SECRET not set — cannot mint /thank-you pass cookie");
+    return;
+  }
+  const exp = Date.now() + COOKIE_TTL_MS;
+  const sig = crypto.createHmac("sha256", secret).update(String(exp), "utf8").digest("hex");
+  const value = `${exp}.${sig}`;
+  res.setHeader(
+    "Set-Cookie",
+    `${LEAD_COOKIE}=${value}; Path=/; Max-Age=${COOKIE_TTL_MS / 1000}; HttpOnly; Secure; SameSite=Lax`
+  );
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -55,6 +79,7 @@ export default async function handler(req, res) {
   // No CRM wired yet → log and succeed so the user still sees the success screen.
   if (!webhookUrl) {
     console.log("[TCTS /api/lead] No GHL_WEBHOOK_URL set — lead received:", JSON.stringify(payload));
+    setLeadCookie(res);
     return res.status(200).json({ ok: true, note: "logged (no webhook configured)" });
   }
 
@@ -91,6 +116,7 @@ export default async function handler(req, res) {
       "lead=" + who,
       "body=" + truncate(body)
     );
+    setLeadCookie(res);
     return res.status(200).json({ ok: true });
   } catch (err) {
     // Network error, DNS failure, timeout, etc. — the lead did NOT reach GHL.
