@@ -58,24 +58,50 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, note: "logged (no webhook configured)" });
   }
 
+  // Identifier to correlate this lead across log lines in Vercel.
+  const who = `${payload.email} / ${payload.phone}`;
+
   try {
+    console.log("[TCTS /api/lead] Forwarding lead to GHL:", who);
+
     const ghlResponse = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
+    // Always read the body once so we can log it on either path. GHL inbound
+    // webhooks frequently return 200 even when they reject the payload, so the
+    // body is logged on success too — a 2xx alone does not prove delivery.
+    const body = await ghlResponse.text().catch(() => "");
+
     if (!ghlResponse.ok) {
-      const detail = await ghlResponse.text().catch(() => "");
-      console.error("[TCTS /api/lead] GHL webhook failed:", ghlResponse.status, detail);
+      console.error(
+        "[TCTS /api/lead] GHL forward FAILED:",
+        "status=" + ghlResponse.status,
+        "lead=" + who,
+        "body=" + truncate(body)
+      );
       return res.status(502).json({ ok: false, error: "Upstream webhook error" });
     }
 
+    console.log(
+      "[TCTS /api/lead] GHL forward OK:",
+      "status=" + ghlResponse.status,
+      "lead=" + who,
+      "body=" + truncate(body)
+    );
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error("[TCTS /api/lead] Error forwarding lead:", err);
+    // Network error, DNS failure, timeout, etc. — the lead did NOT reach GHL.
+    console.error("[TCTS /api/lead] GHL forward ERROR (lead not delivered):", "lead=" + who, err);
     return res.status(502).json({ ok: false, error: "Failed to forward lead" });
   }
+}
+
+function truncate(s, max = 1000) {
+  if (!s) return "(empty)";
+  return s.length > max ? s.slice(0, max) + "…[truncated]" : s;
 }
 
 function safeParse(s) {
