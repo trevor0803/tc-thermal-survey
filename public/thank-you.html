@@ -27,10 +27,19 @@
   fbq('set', 'autoConfig', false, '1332082535728580');
   fbq('init', '1332082535728580');
   fbq('track', 'PageView');
-  fbq('track', 'Lead');
+  // Fire the Lead conversion ONLY when arriving from a real survey submission.
+  // index.html sets sessionStorage 'tcts_lead_ok' right before redirecting here,
+  // so a refresh / back-forward / bookmark / bot hit on /thank-you does NOT fire
+  // a phantom Lead. The token is consumed so each submission counts exactly once.
+  try {
+    if (sessionStorage.getItem('tcts_lead_ok') === '1') {
+      fbq('track', 'Lead');
+      sessionStorage.removeItem('tcts_lead_ok');
+    }
+  } catch (e) {}
   </script>
   <noscript><img height="1" width="1" style="display:none"
-  src="https://www.facebook.com/tr?id=1332082535728580&ev=Lead&noscript=1" /></noscript>
+  src="https://www.facebook.com/tr?id=1332082535728580&ev=PageView&noscript=1" /></noscript>
   <!-- End Meta Pixel Code -->
 
   <style>
@@ -122,8 +131,8 @@
              onerror="this.style.display='none';document.getElementById('logoFallback').style.display='block';" />
         <div class="logo-fallback" id="logoFallback"><span class="a">TCTS</span> <span class="b">Thermal Solutions</span></div>
       </a>
-      <a class="header-call" href="tel:+17724891021">
-        <span>📞</span><span>(772) 489-1021</span>
+      <a class="header-call" href="tel:+17727321449">
+        <span>📞</span><span>(772) 732-1449</span>
       </a>
     </div>
   </header>
@@ -134,7 +143,7 @@
       <h1>You're all set!</h1>
       <p>Thanks — your request is in. A local Treasure Coast Thermal Solutions team member will reach out shortly.</p>
       <p class="call-prompt"><strong>Want to skip the wait? Call us now and we'll get you taken care of right away.</strong></p>
-      <a class="call-btn" href="tel:+17724891021">📞 Call (772) 489-1021</a>
+      <a class="call-btn" href="tel:+17727321449">📞 Call (772) 732-1449</a>
       <div class="rebate">
         💡 <strong>Ask us about FPL energy-efficiency rebates</strong> — you may qualify for savings on your insulation upgrade.
       </div>
@@ -144,7 +153,7 @@
 
   <footer class="site-footer">
     <strong>Treasure Coast Thermal Solutions</strong> — Disabled-Veteran Owned · Family Run<br />
-    Licensed &amp; insured. &nbsp;·&nbsp; <a href="tel:+17724891021">(772) 489-1021</a> &nbsp;·&nbsp; <a href="https://tcthermalsolutions.com">tcthermalsolutions.com</a>
+    Licensed &amp; insured. &nbsp;·&nbsp; <a href="tel:+17727321449">(772) 732-1449</a> &nbsp;·&nbsp; <a href="https://tcthermalsolutions.com">tcthermalsolutions.com</a>
   </footer>
 
 </body>
