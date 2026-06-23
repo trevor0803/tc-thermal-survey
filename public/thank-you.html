@@ -33,8 +33,20 @@
   // a phantom Lead. The token is consumed so each submission counts exactly once.
   try {
     if (sessionStorage.getItem('tcts_lead_ok') === '1') {
-      fbq('track', 'Lead');
+      // Deduplication ID: this Pixel sends a browser Lead, and the Conversions
+      // API Gateway forwards a server-side copy of the same event. Sharing an
+      // eventID lets Meta collapse the two into ONE Lead (fixes double counting).
+      // Reuse the eventID minted at submit time so the browser + server copies
+      // match; fall back to a fresh one if absent.
+      var leadEventId = null;
+      try { leadEventId = sessionStorage.getItem('tcts_lead_eid'); } catch (e) {}
+      if (!leadEventId) {
+        try { leadEventId = (self.crypto && crypto.randomUUID) ? crypto.randomUUID() : null; } catch (e) {}
+        if (!leadEventId) leadEventId = 'lead-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      }
+      fbq('track', 'Lead', {}, { eventID: leadEventId });
       sessionStorage.removeItem('tcts_lead_ok');
+      try { sessionStorage.removeItem('tcts_lead_eid'); } catch (e) {}
     }
   } catch (e) {}
   </script>

@@ -614,7 +614,16 @@
           // for a genuine submission. Without this, a refresh, back/forward,
           // bookmark, or bot hitting /thank-you would fire a phantom Lead with
           // no matching CRM record. Token is consumed (cleared) on /thank-you.
-          try { sessionStorage.setItem("tcts_lead_ok", "1"); } catch (e) {}
+          try {
+            sessionStorage.setItem("tcts_lead_ok", "1");
+            // Mint one dedup eventID per submission; /thank-you fires the Meta
+            // Lead with it so the browser event and the Conversions API Gateway's
+            // server copy share an ID and Meta counts the lead ONCE.
+            var eid;
+            try { eid = (self.crypto && crypto.randomUUID) ? crypto.randomUUID() : null; } catch (e) {}
+            if (!eid) eid = "lead-" + Date.now() + "-" + Math.random().toString(36).slice(2);
+            sessionStorage.setItem("tcts_lead_eid", eid);
+          } catch (e) {}
           window.location.href = "/thank-you";
         })
         .catch(function (err) {
